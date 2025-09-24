@@ -1,12 +1,18 @@
-from hcl2.api import reverse_transform, writes
+"""Utilities for converting validated Terragrunt JSON to HCL output.
+
+  This module exposes a single helper that takes a Pydantic model and writes a
+  Terragrunt-compatible HCL file. Imports that may not exist in all environments
+  (like `hcl2`) are performed inside the function to avoid import-time errors.
+  """
 from pydantic import BaseModel
 
 
 def generate_terragrunt_hcl_from_model(model: BaseModel, output_file_path: str) -> str:
     """
-    Converts a Pydantic model instance representing a Terragrunt config into HCL2 and writes it to a file.
+    Convert a Pydantic model instance representing a Terragrunt config into HCL2
+    and write it to a file.
 
-    This is intended to be used with schemas like `schemas.terragrunt_example.vpc`.
+    This is intended to be used with schemas like `schemas.terragrunt_example.VPC`.
 
     Args:
         model (BaseModel): Pydantic model instance (e.g., `vpc`).
@@ -16,6 +22,10 @@ def generate_terragrunt_hcl_from_model(model: BaseModel, output_file_path: str) 
         str: The generated HCL content.
     """
     try:
+        # Import here to avoid import errors at module import time. The inline
+        # pylint directives acknowledge this is intentional and optional.
+        from hcl2.api import reverse_transform, writes  # type: ignore  # pylint: disable=import-outside-toplevel, import-error
+
         # Convert model to a plain dict (Pydantic v2: model_dump)
         json_data = model.model_dump()
 
@@ -31,7 +41,7 @@ def generate_terragrunt_hcl_from_model(model: BaseModel, output_file_path: str) 
         hcl_ast = reverse_transform(json_data)
         hcl_content = writes(hcl_ast)
 
-        with open(output_file_path, "w") as f:
+        with open(output_file_path, "w", encoding="utf-8") as f:
             f.write(hcl_content)
 
         return hcl_content

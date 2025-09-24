@@ -1,5 +1,10 @@
-from pydantic import BaseModel, Field
+"""Pydantic schemas for Terragrunt configuration payloads.
+
+This module defines nested models for Include, Terraform, Inputs, and wrapper
+models for submitting Terragrunt configuration to the API.
+"""
 from typing import Literal
+from pydantic import BaseModel, Field
 
 
 class Include(BaseModel):
@@ -8,7 +13,8 @@ class Include(BaseModel):
     Controls how this module inherits configuration from parent folders.
 
     Attributes:
-        path (Literal["find_in_parent_folders()"] | str): Special value 'find_in_parent_folders()' to auto-discover parent terragrunt.hcl,
+        path (Literal["find_in_parent_folders()"] | str): Special value
+            'find_in_parent_folders()' to auto-discover the parent terragrunt.hcl,
             or a string path to a specific parent directory/file.
     """
 
@@ -25,10 +31,12 @@ class Terraform(BaseModel):
     """Terraform source configuration for this module."""
 
     source: str = Field(
-        default="git::git@github.com:my-org/terraform-modules.git//vpc?ref=v1.2.0",
+        default=(
+            "git::git@github.com:my-org/terraform-modules.git//vpc?ref=v1.2.0"
+        ),
         description=(
-            "Module source URL. Supports Git URLs (e.g., git::https://..., ssh), local paths, "
-            "and ref query for version pinning (e.g., ?ref=v1.2.0)."
+            "Module source URL. Supports Git URLs (e.g., git::https://..., ssh), "
+            "local paths, and ref query for version pinning (e.g., ?ref=v1.2.0)."
         ),
     )
 
@@ -74,7 +82,7 @@ class TerragruntConfig(BaseModel):
     )
 
 
-class vpc(BaseModel):
+class VPC(BaseModel):
     """Wrapper config including output path and the Terragrunt module."""
 
     conf_path: str = Field(
@@ -94,7 +102,10 @@ class vpc(BaseModel):
                     "terragrunt": {
                         "include": {"path": "find_in_parent_folders()"},
                         "terraform": {
-                            "source": "git::git@github.com:my-org/terraform-modules.git//vpc?ref=v1.2.0"
+                            "source": (
+                                "git::git@github.com:my-org/terraform-modules.git//vpc"
+                                "?ref=v1.2.0"
+                            )
                         },
                         "inputs": {
                             "vpc_name": "production-vpc",
